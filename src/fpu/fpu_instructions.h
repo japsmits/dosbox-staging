@@ -256,10 +256,9 @@ static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	uint64_t val = 0;
-	Bitu in = 0;
 	uint64_t base = 1;
-	for(Bitu i = 0;i < 9;i++){
-		in = mem_readb(addr + i);
+	for(int i = 0;i < 9;i++){
+		const auto in = mem_readb(addr + i);
 		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
 		base *= 10;
 		val += ((( in>>4)&0xf) * base);
@@ -268,8 +267,8 @@ static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 
 	//last number, only now convert to float in order to get
 	//the best signification
-	Real64 temp = static_cast<Real64>(val);
-	in = mem_readb(addr + 9);
+	auto temp = static_cast<Real64>(val);
+	const auto in = mem_readb(addr + 9);
 	temp += ( (in&0xf) * base );
 	if(in&0x80) temp *= -1.0;
 	fpu.regs[store_to].d = temp;
@@ -551,24 +550,24 @@ static void FPU_FXAM(void){
 
 
 static void FPU_F2XM1(void){
-	fpu.regs[TOP].d = pow(2.0,fpu.regs[TOP].d) - 1;
+	fpu.regs[TOP].d = std::pow(2.0, fpu.regs[TOP].d) - 1.0;
 	return;
 }
 
 static void FPU_FYL2X(void){
-	fpu.regs[STV(1)].d*=log(fpu.regs[TOP].d)/log(static_cast<Real64>(2.0));
+	fpu.regs[STV(1)].d *= std::log2(fpu.regs[TOP].d);
 	FPU_FPOP();
 	return;
 }
 
 static void FPU_FYL2XP1(void){
-	fpu.regs[STV(1)].d*=log(fpu.regs[TOP].d+1.0)/log(static_cast<Real64>(2.0));
+	fpu.regs[STV(1)].d *= std::log2(fpu.regs[TOP].d + 1.0);
 	FPU_FPOP();
 	return;
 }
 
 static void FPU_FSCALE(void){
-	fpu.regs[TOP].d *= pow(2.0,static_cast<Real64>(static_cast<int64_t>(fpu.regs[STV(1)].d)));
+	fpu.regs[TOP].d *= std::pow(2.0, std::trunc(fpu.regs[STV(1)].d));
 	//FPU_SET_C1(0);
 	return; //2^x where x is chopped.
 }
@@ -589,7 +588,7 @@ static void FPU_FSTENV(PhysPt addr){
 static void FPU_FLDENV(PhysPt addr){
 	uint16_t tag;
 	uint32_t tagbig;
-	Bitu cw;
+	uint16_t cw;
 	if(!cpu.code.big) {
 		cw     = mem_readw(addr+0);
 		fpu.sw = mem_readw(addr+2);
@@ -607,8 +606,8 @@ static void FPU_FLDENV(PhysPt addr){
 
 static void FPU_FSAVE(PhysPt addr){
 	FPU_FSTENV(addr);
-	Bitu start = (cpu.code.big?28:14);
-	for(Bitu i = 0;i < 8;i++){
+	PhysPt start = (cpu.code.big?28:14);
+	for(int i = 0;i < 8;i++){
 		FPU_ST80(addr+start,STV(i));
 		start += 10;
 	}
@@ -617,8 +616,8 @@ static void FPU_FSAVE(PhysPt addr){
 
 static void FPU_FRSTOR(PhysPt addr){
 	FPU_FLDENV(addr);
-	Bitu start = (cpu.code.big?28:14);
-	for(Bitu i = 0;i < 8;i++){
+	PhysPt start = (cpu.code.big?28:14);
+	for(int i = 0;i < 8;i++){
 		fpu.regs[STV(i)].d = FPU_FLD80(addr+start);
 		start += 10;
 	}
@@ -638,7 +637,7 @@ static void FPU_FXTRACT(void) {
 }
 
 static void FPU_FCHS(void){
-	fpu.regs[TOP].d = -1.0*(fpu.regs[TOP].d);
+	fpu.regs[TOP].d = -fpu.regs[TOP].d;
 }
 
 static void FPU_FABS(void){
