@@ -80,10 +80,8 @@
 #include <atomic>
 #include <cassert>
 #include <cmath>
-#include <condition_variable>
-#include <cstdlib>
 #include <cstring>
-#include <mutex>
+#include <semaphore>
 
 #include <SDL.h>
 #include <SDL_cpuinfo.h> // for proper SSE defines for MSVC
@@ -103,7 +101,6 @@
 #include "pci_bus.h"
 #include "pic.h"
 #include "render.h"
-#include "semaphore_internal.h"
 #include "setup.h"
 #include "support.h"
 #include "vga.h"
@@ -255,7 +252,8 @@ enum VoodooModel
 	VOODOO_2,
 };
 
-enum { TRIANGLE_THREADS = 3, TRIANGLE_WORKERS = TRIANGLE_THREADS + 1 };
+constexpr int TRIANGLE_THREADS = 3;
+constexpr int TRIANGLE_WORKERS = TRIANGLE_THREADS + 1;
 
 /* maximum number of TMUs */
 #define MAX_TMU					2
@@ -897,9 +895,14 @@ struct triangle_worker
 	poly_vertex v1, v2, v3;
 	int32_t v1y, v3y, totalpix;
 	std::array<std::thread, TRIANGLE_THREADS> threads;
-	std::array<Semaphore, TRIANGLE_THREADS> sembegin;
-	Semaphore semdone;
-	int done_count;
+	// This clunky initialization is required because semaphores
+	// don't have copy/move semantics.
+	std::array<std::binary_semaphore, TRIANGLE_THREADS> sembegin{
+	        std::binary_semaphore{0},
+	        std::binary_semaphore{0},
+	        std::binary_semaphore{0},
+	};
+	std::counting_semaphore<TRIANGLE_THREADS> semdone{0};
 };
 
 struct voodoo_state
@@ -4390,11 +4393,9 @@ static int triangle_worker_thread_func(int32_t p)
 {
 	triangle_worker& tworker = v->tworker;
 	for (const int32_t tnum = p; tworker.threads_active;) {
-		tworker.sembegin[tnum].wait();
-		if (tworker.threads_active) {
-			triangle_worker_work(tworker, tnum, tnum + 1);
-		}
-		tworker.semdone.notify();
+		tworker.sembegin[tnum].acquire();
+		triangle_worker_work(tworker, tnum, tnum + 1);
+		tworker.semdone.release();
 	}
 	return 0;
 }
@@ -4406,11 +4407,11 @@ static void triangle_worker_shutdown(triangle_worker& tworker)
 	}
 	tworker.threads_active = false;
 	for (size_t i = 0; i != TRIANGLE_THREADS; i++) {
-		tworker.sembegin[i].notify();
+		tworker.sembegin[i].release();
 	}
 
 	for (size_t i = 0; i != TRIANGLE_THREADS; i++) {
-		tworker.semdone.wait();
+		tworker.semdone.acquire();
 	}
 
 	for (auto& thread : tworker.threads) {
@@ -4482,11 +4483,11 @@ static void triangle_worker_run(triangle_worker& tworker)
 		}
 	}
 	for (auto& begin_semaphore : tworker.sembegin) {
-		begin_semaphore.notify();
+		begin_semaphore.release();
 	}
 	triangle_worker_work(tworker, TRIANGLE_THREADS, TRIANGLE_WORKERS);
 	for (size_t i = 0; i != TRIANGLE_THREADS; i++) {
-		tworker.semdone.wait();
+		tworker.semdone.acquire();
 	}
 }
 
