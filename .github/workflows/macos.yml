@@ -33,7 +33,7 @@ jobs:
             max_warnings: 0
 
           - name: Clang
-            host: [self-hosted, macOS, arm64, debug-builds]
+            host: flyci-macos-large-latest-m1
             arch: arm64
             needs_deps: false
             packages: meson
@@ -148,7 +148,7 @@ jobs:
     strategy:
       matrix:
         runner:
-          - host: [self-hosted, macOS, arm64, release-builds]
+          - host: flyci-macos-large-latest-m1
             arch: x86_64
             build_flags: -Db_lto=true -Db_lto_threads=4 --native-file=.github/meson/macos-arm64-to-x86_64-10.15-deployment-target.ini
             brew_path: /usr/local/homebrew
@@ -156,7 +156,7 @@ jobs:
             needs_deps: false
             needs_libintl_workaround: false
 
-          - host: [self-hosted, macOS, arm64, release-builds]
+          - host: flyci-macos-large-latest-m1
             arch: arm64
             brew_path: /opt/homebrew
             minimum_deployment: '11.0'
@@ -283,7 +283,7 @@ jobs:
           export VERSION=$(git describe --abbrev=5)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Install brew depedencies
+      - name: Install brew dependencies
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install --overwrite librsvg
 
       - name: Download binaries
