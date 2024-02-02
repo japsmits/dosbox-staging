@@ -80,7 +80,6 @@ public:
 		V_INT,
 		V_STRING,
 		V_DOUBLE,
-		V_CURRENT
 	} type = V_NONE;
 
 	// Constructors
@@ -109,7 +108,7 @@ public:
 	operator double() const;
 	operator std::string() const;
 
-	bool SetValue(const std::string& in, Etype _type = V_CURRENT);
+	bool SetValue(const std::string& in, Etype _type);
 
 	std::string ToString() const;
 
