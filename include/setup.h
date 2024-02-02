@@ -58,6 +58,18 @@ public:
 		return value == other.value;
 	}
 
+	friend std::istream& operator>>(std::istream& input, Hex& hex)
+	{
+		input.flags(std::ios::hex);
+		return input >> hex.value;
+	}
+
+	friend std::ostream& operator<<(std::ostream& output, Hex& hex)
+	{
+		output.flags(std::ios::hex);
+		return output << hex.value;
+	}
+
 	operator int() const
 	{
 		return value;
