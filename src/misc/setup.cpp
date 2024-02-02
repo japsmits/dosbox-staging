@@ -50,75 +50,37 @@ std::unique_ptr<Config> control = {};
 // Set by parseconfigfile so Prop_path can use it to construct the realpath
 static std_fs::path current_config_dir;
 
-Value::operator bool() const
-{
-	assert(type == V_BOOL);
-	return _bool;
-}
-
-Value::operator Hex() const
-{
-	assert(type == V_HEX);
-	return _hex;
-}
-
-Value::operator int() const
-{
-	assert(type == V_INT);
-	return _int;
-}
-
-Value::operator double() const
-{
-	assert(type == V_DOUBLE);
-	return _double;
-}
-
-Value::operator std::string() const
-{
-	assert(type == V_STRING);
-	return _string;
-}
-
 bool Value::operator==(const Value& other) const
 {
 	if (this == &other) {
 		return true;
 	}
-	if (type != other.type) {
+	if (type() != other.type()) {
 		return false;
 	}
-	switch (type) {
-	case V_BOOL: return _bool == other._bool;
-	case V_INT: return _int == other._int;
-	case V_HEX: return _hex == other._hex;
-	case V_DOUBLE: return _double == other._double;
-	case V_STRING: return _string == other._string;
-	default:
+	if (type() == V_NONE) {
 		LOG_ERR("SETUP: Comparing stuff that doesn't make sense");
-		break;
+		return false;
 	}
-	return false;
+	return _value == other._value;
 }
 
 bool Value::operator<(const Value& other) const
 {
-	return std::tie(_hex, _bool, _int, _string, _double) <
-	       std::tie(other._hex, other._bool, other._int, other._string, other._double);
+	return _value < other._value;
 }
 
 bool Value::SetValue(const std::string& in, const Etype _type)
 {
-	assert(type == V_NONE || type == _type);
-	type = _type;
+	assert(type() == V_NONE || type() == _type);
 
 	bool is_valid = true;
-	switch (type) {
-	case V_HEX: is_valid = SetHex(in); break;
-	case V_INT: is_valid = SetInt(in); break;
-	case V_BOOL: is_valid = SetBool(in); break;
-	case V_STRING: SetString(in); break;
-	case V_DOUBLE: is_valid = SetDouble(in); break;
+	switch (_type) {
+	case V_HEX: is_valid = SetValue<Hex>(in); break;
+	case V_INT: is_valid = SetValue<int>(in); break;
+	case V_BOOL: is_valid = SetValue<bool>(in); break;
+	case V_STRING: SetValue<std::string>(in); break;
+	case V_DOUBLE: is_valid = SetValue<double>(in); break;
 
 	case V_NONE:
 	default:
@@ -130,78 +92,50 @@ bool Value::SetValue(const std::string& in, const Etype _type)
 	return is_valid;
 }
 
-bool Value::SetHex(const std::string& in)
+template <class T>
+bool Value::SetValue(const std::string& in)
 {
-	istringstream input(in);
-	input.flags(ios::hex);
-	int result = INT_MIN;
-	input >> result;
-	if (result == INT_MIN) {
-		return false;
+	if constexpr (std::is_same_v<T, bool>) {
+		// Sets the '_bool' member variable to either the parsed boolean
+		// value or false if it couldn't be parsed. Returns true if the
+		// provided string was parsed.
+		auto in_lowercase = in;
+		lowcase(in_lowercase);
+		const auto parsed = parse_bool_setting(in_lowercase);
+		_value            = parsed ? *parsed : false;
+		return parsed.has_value();
+	} else if constexpr (std::is_same_v<T, std::string>) {
+		_value = in;
+	} else {
+		istringstream input(in);
+		T result;
+		input >> result;
+		_value = result;
 	}
-	_hex = result;
 	return true;
-}
-
-bool Value::SetInt(const std::string& in)
-{
-	istringstream input(in);
-	int result = INT_MIN;
-	input >> result;
-	if (result == INT_MIN) {
-		return false;
-	}
-	_int = result;
-	return true;
-}
-
-bool Value::SetDouble(const std::string& in)
-{
-	istringstream input(in);
-	double result = std::numeric_limits<double>::infinity();
-	input >> result;
-	if (result == std::numeric_limits<double>::infinity()) {
-		return false;
-	}
-	_double = result;
-	return true;
-}
-
-// Sets the '_bool' member variable to either the parsed boolean value or false
-// if it couldn't be parsed. Returns true if the provided string was parsed.
-bool Value::SetBool(const std::string& in)
-{
-	auto in_lowercase = in;
-	lowcase(in_lowercase);
-	const auto parsed = parse_bool_setting(in_lowercase);
-	_bool = parsed ? *parsed : false;
-	return parsed.has_value();
-}
-
-void Value::SetString(const std::string& in)
-{
-	_string = in;
 }
 
 string Value::ToString() const
 {
-	ostringstream oss;
-	switch (type) {
-	case V_HEX:
-		oss.flags(ios::hex);
-		oss << _hex;
-		break;
-	case V_INT: oss << _int; break;
-	case V_BOOL: oss << boolalpha << _bool; break;
-	case V_STRING: oss << _string; break;
-	case V_DOUBLE:
-		oss.precision(2);
-		oss << fixed << _double;
-		break;
-	case V_NONE:
-	default: E_Exit("ToString messed up ?"); break;
-	}
-	return oss.str();
+	return std::visit(
+	        [](auto arg) {
+		        using T = std::decay_t<decltype(arg)>;
+		        if constexpr (std::is_same_v<T, std::monostate>) {
+			        E_Exit("ToString messed up ?");
+			        return std::string{};
+		        } else {
+			        ostringstream oss;
+			        if constexpr (std::is_same_v<T, bool>) {
+				        oss << std::boolalpha;
+			        } else if constexpr (std::is_same_v<T, double>) {
+				        oss.precision(2);
+				        oss << std::fixed;
+			        }
+			        oss << arg;
+			        return oss.str();
+		        }
+	        },
+	        _value);
 }
 
 Property::Property(const std::string& name, Changeable::Value when)
@@ -688,7 +622,7 @@ void Property::MaybeSetBoolValid(const std::string_view valid_value)
 
 void Property::Set_values(const char* const* in)
 {
-	Value::Etype type = default_value.type;
+	Value::Etype type = default_value.type();
 
 	int i = 0;
 
@@ -710,7 +644,7 @@ void Property::SetDeprecatedWithAlternateValue(const char* deprecated_value,
 
 void Property::Set_values(const std::vector<std::string>& in)
 {
-	Value::Etype type = default_value.type;
+	Value::Etype type = default_value.type();
 	for (auto& str : in) {
 		MaybeSetBoolValid(str);
 		Value val(str, type);

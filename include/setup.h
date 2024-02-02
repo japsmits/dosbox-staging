@@ -32,6 +32,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <variant>
 #include <vector>
 
 #include "std_filesystem.h"
@@ -78,11 +79,8 @@ public:
 
 class Value {
 private:
-	Hex _hex            = 0;
-	bool _bool          = false;
-	int _int            = 0;
-	std::string _string = {};
-	double _double      = 0;
+	using possible_types =
+	        std::variant<std::monostate, Hex, bool, int, std::string, double>;
 
 public:
 	enum Etype {
@@ -92,44 +90,55 @@ public:
 		V_INT,
 		V_STRING,
 		V_DOUBLE,
-	} type = V_NONE;
+	};
+
+	// Ensure a one-on-one translation from the variant index to Etype
+	static_assert(std::is_same_v<std::monostate, std::variant_alternative_t<V_NONE, possible_types>>);
+	static_assert(std::is_same_v<Hex, std::variant_alternative_t<V_HEX, possible_types>>);
+	static_assert(std::is_same_v<bool, std::variant_alternative_t<V_BOOL, possible_types>>);
+	static_assert(std::is_same_v<int, std::variant_alternative_t<V_INT, possible_types>>);
+	static_assert(std::is_same_v<std::string, std::variant_alternative_t<V_STRING, possible_types>>);
+	static_assert(std::is_same_v<double, std::variant_alternative_t<V_DOUBLE, possible_types>>);
 
 	// Constructors
 	Value() = default;
 
-	Value(const Hex& in) : _hex(in), type(V_HEX) {}
-	Value(int in) : _int(in), type(V_INT) {}
-	Value(bool in) : _bool(in), type(V_BOOL) {}
-	Value(double in) : _double(in), type(V_DOUBLE) {}
+	Value(const Hex& in) : _value(in) {}
+	Value(int in) : _value(in) {}
+	Value(bool in) : _value(in) {}
+	Value(double in) : _value(in) {}
+	Value(const std::string& in) : _value(in) {}
+	Value(const char* const in) : _value(std::string(in)) {}
 
 	Value(const std::string& in, Etype t)
 	{
 		SetValue(in, t);
 	}
 
-	Value(const std::string& in) : _string(in), type(V_STRING) {}
-
-	Value(const char* const in) : _string(in), type(V_STRING) {}
-
 	bool operator==(const Value& other) const;
 	bool operator<(const Value& other) const;
 
-	operator bool() const;
-	operator Hex() const;
-	operator int() const;
-	operator double() const;
-	operator std::string() const;
+	template <typename T>
+	operator T() const
+	{
+		return std::get<T>(_value);
+	}
+
+	Etype type() const
+	{
+		return static_cast<Etype>(_value.index());
+	}
 
 	bool SetValue(const std::string& in, Etype _type);
 
 	std::string ToString() const;
 
 private:
-	bool SetHex(const std::string& in);
-	bool SetInt(const std::string& in);
-	bool SetBool(const std::string& in);
-	void SetString(const std::string& in);
-	bool SetDouble(const std::string& in);
+	template <class T>
+	bool SetValue(const std::string& in);
+
+private:
+	possible_types _value = {};
 };
 
 class Property {
@@ -189,7 +198,7 @@ public:
 
 	Value::Etype Get_type()
 	{
-		return default_value.type;
+		return default_value.type();
 	}
 
 protected:
@@ -201,8 +210,8 @@ protected:
 	bool is_positive_bool_valid                            = false;
 	bool is_negative_bool_valid                            = false;
 
-	Value default_value                                    = {};
-	const Changeable::Value change                         = {};
+	Value default_value            = {};
+	const Changeable::Value change = {};
 	typedef std::vector<Value>::const_iterator const_iter;
 
 private:
