@@ -817,7 +817,6 @@ Prop_bool* Section_prop::GetBoolProp(const std::string& propname) const
 	return nullptr;
 }
 
-
 Prop_string* Section_prop::GetStringProp(const std::string& propname) const
 {
 	for (const auto property : properties) {
@@ -1021,7 +1020,8 @@ bool Config::WriteConfig(const std_fs::path& path) const
 					fprintf(outfile, ".");
 				};
 				print_values("CONFIG_VALID_VALUES", p->GetValues());
-				print_values("CONFIG_DEPRECATED_VALUES", p->GetDeprecatedValues());
+				print_values("CONFIG_DEPRECATED_VALUES",
+				             p->GetDeprecatedValues());
 				fprintf(outfile, "\n");
 			}
 		} else {
@@ -1624,8 +1624,7 @@ const char* Config::SetProp(std::vector<std::string>& pvars)
 
 		if (!sec) {
 			// Not a section: little duplicate from above
-			Section* sec = GetSectionFromProperty(
-			        pvars[0].c_str());
+			Section* sec = GetSectionFromProperty(pvars[0].c_str());
 
 			if (sec) {
 				pvars.insert(pvars.begin(),
@@ -1665,8 +1664,7 @@ const char* Config::SetProp(std::vector<std::string>& pvars)
 			}
 
 			// Is this a property?
-			Section* sec2 = GetSectionFromProperty(
-			        pvars[1].c_str());
+			Section* sec2 = GetSectionFromProperty(pvars[1].c_str());
 
 			if (!sec2) {
 				// Not a property
@@ -1710,8 +1708,8 @@ void Config::ParseArguments()
 	arguments.noconsole   = cmdline->FindRemoveBoolArgument("noconsole");
 	arguments.startmapper = cmdline->FindRemoveBoolArgument("startmapper");
 	arguments.exit        = cmdline->FindRemoveBoolArgument("exit");
-	arguments.securemode = cmdline->FindRemoveBoolArgument("securemode");
-	arguments.noautoexec = cmdline->FindRemoveBoolArgument("noautoexec");
+	arguments.securemode  = cmdline->FindRemoveBoolArgument("securemode");
+	arguments.noautoexec  = cmdline->FindRemoveBoolArgument("noautoexec");
 
 	arguments.eraseconf = cmdline->FindRemoveBoolArgument("eraseconf") ||
 	                      cmdline->FindRemoveBoolArgument("resetconf");
@@ -1719,11 +1717,11 @@ void Config::ParseArguments()
 	                        cmdline->FindRemoveBoolArgument("resetmapper");
 
 	arguments.version = cmdline->FindRemoveBoolArgument("version", 'v');
-	arguments.help    = (cmdline->FindRemoveBoolArgument("help", 'h') || 
-	                     cmdline->FindRemoveBoolArgument("help", '?'));
+	arguments.help    = (cmdline->FindRemoveBoolArgument("help", 'h') ||
+                          cmdline->FindRemoveBoolArgument("help", '?'));
 
 	arguments.working_dir = cmdline->FindRemoveStringArgument("working-dir");
-	arguments.lang = cmdline->FindRemoveStringArgument("lang");
+	arguments.lang    = cmdline->FindRemoveStringArgument("lang");
 	arguments.machine = cmdline->FindRemoveStringArgument("machine");
 
 	arguments.socket = cmdline->FindRemoveIntArgument("socket");
