@@ -752,38 +752,34 @@ void init_midi_dosbox_settings(Section_prop& secprop)
 	  nullptr };
 
 	str_prop->Set_values(midi_devices);
-	str_prop->Set_help(
-	        "Set where MIDI data from the emulated MPU-401 MIDI interface is sent\n"
-	        "('auto' by default):\n"
-#if defined(MACOSX)
-#if C_COREMIDI
-	        "  coremidi:    Any device that has been configured in the macOS\n"
-	        "               Audio MIDI Setup.\n"
-#endif
-#if C_COREAUDIO
-	        "  coreaudio:   Use the built-in macOS MIDI synthesiser.\n"
-#endif
-#elif defined(WIN32)
-	        "  win32:       Use the Win32 MIDI playback interface.\n"
-#else
-	        "  oss:         Use the Linux OSS MIDI playback interface.\n"
-#endif
-#if C_ALSA
-	        "  alsa:        Use the Linux ALSA MIDI playback interface.\n"
-#endif
-#if C_FLUIDSYNTH
+	str_prop->Set_help("Set where MIDI data from the emulated MPU-401 MIDI interface is sent\n"
+	                   "('auto' by default):\n");
+	str_prop->Set_item_help("coremidi",
+	                        "  coremidi:    Any device that has been configured in the macOS\n"
+	                        "               Audio MIDI Setup.\n");
+	str_prop->Set_item_help("coreaudio",
+	                        "  coreaudio:   Use the built-in macOS MIDI synthesiser.\n");
+	str_prop->Set_item_help("win32",
+	                        "  win32:       Use the Win32 MIDI playback interface.\n");
+	str_prop->Set_item_help("oss",
+	                        "  oss:         Use the Linux OSS MIDI playback interface.\n");
+	str_prop->Set_item_help("alsa",
+	                        "  alsa:        Use the Linux ALSA MIDI playback interface.\n");
+	str_prop->Set_item_help(
+	        "fluidsynth",
 	        "  fluidsynth:  The built-in FluidSynth MIDI synthesizer (SoundFont player).\n"
-	        "               See the [fluidsynth] section for detailed configuration.\n"
-#endif
-#if C_MT32EMU
+	        "               See the [fluidsynth] section for detailed configuration.\n");
+	str_prop->Set_item_help(
+	        "mt32",
 	        "  mt32:        The built-in Roland MT-32 synthesizer.\n"
-	        "               See the [mt32] section for detailed configuration.\n"
-#endif
+	        "               See the [mt32] section for detailed configuration.\n");
+	str_prop->Set_item_help(
+	        "auto",
 	        "  auto:        Either one of the built-in MIDI synthesisers (if `midiconfig` is\n"
 	        "               set to 'fluidsynth' or 'mt32'), or a MIDI device external to\n"
 	        "               DOSBox (any other 'midiconfig' value). This might be a software\n"
-	        "               synthesizer or physical device. This is the default behaviour.\n"
-	        "  none:        Disable MIDI output.");
+	        "               synthesizer or physical device. This is the default behaviour.\n");
+	str_prop->Set_item_help("none", "  none:        Disable MIDI output.");
 
 	str_prop = secprop.Add_string("midiconfig", when_idle, "");
 	str_prop->Set_help(
