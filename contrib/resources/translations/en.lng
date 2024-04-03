@@ -1140,17 +1140,47 @@ Note: You can fine-tune each channel's chorus level using the MIXER.
 :CONFIG_MIDIDEVICE
 Set where MIDI data from the emulated MPU-401 MIDI interface is sent
 ('auto' by default):
+
+.
+:CONFIGITEM_MIDIDEVICE_COREMIDI
   coremidi:    Any device that has been configured in the macOS
                Audio MIDI Setup.
+
+.
+:CONFIGITEM_MIDIDEVICE_COREAUDIO
   coreaudio:   Use the built-in macOS MIDI synthesiser.
+
+.
+:CONFIGITEM_MIDIDEVICE_WIN32
+  win32:       Use the Win32 MIDI playback interface.
+
+.
+:CONFIGITEM_MIDIDEVICE_OSS
+  oss:         Use the Linux OSS MIDI playback interface.
+
+.
+:CONFIGITEM_MIDIDEVICE_ALSA
+  alsa:        Use the Linux ALSA MIDI playback interface.
+
+.
+:CONFIGITEM_MIDIDEVICE_FLUIDSYNTH
   fluidsynth:  The built-in FluidSynth MIDI synthesizer (SoundFont player).
                See the [fluidsynth] section for detailed configuration.
+
+.
+:CONFIGITEM_MIDIDEVICE_MT32
   mt32:        The built-in Roland MT-32 synthesizer.
                See the [mt32] section for detailed configuration.
+
+.
+:CONFIGITEM_MIDIDEVICE_AUTO
   auto:        Either one of the built-in MIDI synthesisers (if `midiconfig` is
                set to 'fluidsynth' or 'mt32'), or a MIDI device external to
                DOSBox (any other 'midiconfig' value). This might be a software
                synthesizer or physical device. This is the default behaviour.
+
+.
+:CONFIGITEM_MIDIDEVICE_NONE
   none:        Disable MIDI output.
 .
 :CONFIG_MIDICONFIG
