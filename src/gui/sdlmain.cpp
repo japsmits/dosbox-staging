@@ -4335,21 +4335,27 @@ static void config_add_sdl()
 	  nullptr };
 
 #if C_OPENGL
-	Pstring = sdl_sec->Add_string("output", always, "opengl");
-	Pstring->Set_help(
-	        "Video system to use for output ('opengl' by default).\n"
-	        "'texture' and 'opengl' use bilinear interpolation, 'texturenb' and\n"
-	        "'openglnb' use nearest-neighbour (no-bilinear). Some shaders require\n"
-	        "bilinear interpolation, making that the safest choice.");
-	Pstring->SetDeprecatedWithAlternateValue("openglpp", "opengl");
-	Pstring->SetDeprecatedWithAlternateValue("surface", "opengl");
+	const std::string output_default = "opengl";
 #else
-	Pstring = sdl_sec->Add_string("output", always, "texture");
-	Pstring->Set_help("Video system to use for output ('texture' by default).");
-	Pstring->SetDeprecatedWithAlternateValue("surface", "texture");
+	const std::string output_default = "texture";
 #endif
-	Pstring->SetDeprecatedWithAlternateValue("texturepp", "texture");
-	Pstring->Set_values(outputs);
+	pstring = sdl_sec->Add_string("output", always, output_default.c_str());
+	pstring->Set_help(
+	        "Video system to use for output ('" + output_default +
+	        "' by default).\n"
+	        "Some shaders require bilinear interpolation, making that the safest choice.\n");
+	pstring->Set_option_help("texture",
+	                       "  texture:   use bilinear interpolation.\n");
+	pstring->Set_option_help("opengl",
+	                       "  opengl:    use bilinear interpolation.\n");
+	pstring->Set_option_help("texturenb",
+	                       "  texturenb: use nearest-neighbour (no-bilinear).");
+	pstring->Set_option_help("openglnb",
+	                       "  openglnb:  use nearest-neighbour (no-bilinear).");
+	pstring->SetDeprecatedWithAlternateValue("openglpp", "opengl");
+	pstring->SetDeprecatedWithAlternateValue("surface", output_default.c_str());
+	pstring->SetDeprecatedWithAlternateValue("texturepp", "texture");
+	pstring->Set_values(outputs);
 
 	pstring = sdl_sec->Add_string("texture_renderer", always, "auto");
 	pstring->Set_help("Render driver to use in 'texture' output mode ('auto' by default).\n"

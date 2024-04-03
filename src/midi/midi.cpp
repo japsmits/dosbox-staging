@@ -754,51 +754,68 @@ void init_midi_dosbox_settings(Section_prop& secprop)
 	str_prop->Set_values(midi_devices);
 	str_prop->Set_help("Set where MIDI data from the emulated MPU-401 MIDI interface is sent\n"
 	                   "('auto' by default):\n");
-	str_prop->Set_item_help("coremidi",
+	str_prop->Set_option_help("coremidi",
 	                        "  coremidi:    Any device that has been configured in the macOS\n"
 	                        "               Audio MIDI Setup.\n");
-	str_prop->Set_item_help("coreaudio",
+	str_prop->Set_option_help("coreaudio",
 	                        "  coreaudio:   Use the built-in macOS MIDI synthesiser.\n");
-	str_prop->Set_item_help("win32",
+	str_prop->Set_option_help("win32",
 	                        "  win32:       Use the Win32 MIDI playback interface.\n");
-	str_prop->Set_item_help("oss",
+	str_prop->Set_option_help(
+	        "oss",
 	                        "  oss:         Use the Linux OSS MIDI playback interface.\n");
-	str_prop->Set_item_help("alsa",
+	str_prop->Set_option_help(
+	        "alsa",
 	                        "  alsa:        Use the Linux ALSA MIDI playback interface.\n");
-	str_prop->Set_item_help(
+	str_prop->Set_option_help(
 	        "fluidsynth",
 	        "  fluidsynth:  The built-in FluidSynth MIDI synthesizer (SoundFont player).\n"
 	        "               See the [fluidsynth] section for detailed configuration.\n");
-	str_prop->Set_item_help(
+	str_prop->Set_option_help(
 	        "mt32",
 	        "  mt32:        The built-in Roland MT-32 synthesizer.\n"
 	        "               See the [mt32] section for detailed configuration.\n");
-	str_prop->Set_item_help(
+	str_prop->Set_option_help(
 	        "auto",
 	        "  auto:        Either one of the built-in MIDI synthesisers (if `midiconfig` is\n"
 	        "               set to 'fluidsynth' or 'mt32'), or a MIDI device external to\n"
 	        "               DOSBox (any other 'midiconfig' value). This might be a software\n"
 	        "               synthesizer or physical device. This is the default behaviour.\n");
-	str_prop->Set_item_help("none", "  none:        Disable MIDI output.");
+	str_prop->Set_option_help("none", "  none:        Disable MIDI output.");
 
 	str_prop = secprop.Add_string("midiconfig", when_idle, "");
 	str_prop->Set_help(
 	        "Configuration options for the selected MIDI interface (unset by default).\n"
 	        "This is usually the ID or name of the MIDI synthesizer you want\n"
 	        "to use (find the ID/name with the DOS command 'MIXER /LISTMIDI').\n"
+	        "Notes:\n");
+	const std::vector<std::string> midiconfig_options
+	{
 #if (C_FLUIDSYNTH == 1 || C_MT32EMU == 1)
-	        "Notes:\n"
-	        "  - This option has no effect when using the built-in synthesizers\n"
-	        "    ('mididevice = fluidsynth' or 'mididevice = mt32').\n"
+		"fluidsynth_or_mt32emu",
 #endif
 #if C_COREAUDIO
-	        "  - When using 'coreaudio', you can specify a SoundFont here.\n"
+		"coreaudio",
 #endif
 #if C_ALSA
-	        "  - When using ALSA, use the Linux command 'aconnect -l' to list all open\n"
-	        "    MIDI ports and select one (e.g. 'midiconfig = 14:0' for sequencer\n"
-	        "    client 14, port 0).\n"
+		"alsa",
 #endif
+		"mt32",
+	};
+	str_prop->Set_enabled_options(midiconfig_options);
+	str_prop->Set_option_help(
+	        "fluidsynth_or_mt32emu",
+	        "  - This option has no effect when using the built-in synthesizers\n"
+	        "    ('mididevice = fluidsynth' or 'mididevice = mt32').\n");
+	str_prop->Set_option_help(
+	        "coreaudio",
+	        "  - When using 'coreaudio', you can specify a SoundFont here.\n");
+	str_prop->Set_option_help("alsa",
+	                            "  - When using ALSA, use the Linux command 'aconnect -l' to list all open\n"
+	                            "    MIDI ports and select one (e.g. 'midiconfig = 14:0' for sequencer\n"
+	                            "    client 14, port 0).\n");
+	str_prop->Set_option_help(
+	        "mt32",
 	        "  - If you're using a physical Roland MT-32 with revision 0 PCB, the hardware\n"
 	        "    may require a delay in order to prevent its buffer from overflowing.\n"
 	        "    In that case, add 'delaysysex' (e.g. 'midiconfig = 2 delaysysex').");
