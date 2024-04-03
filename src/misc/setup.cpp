@@ -274,18 +274,56 @@ void Property::Set_help(const std::string& in)
 	MSG_Add(result.c_str(), in.c_str());
 }
 
-const char* Property::GetHelp() const
+static std::string create_config_name(const std::string& propname) 
 {
 	std::string result = "CONFIG_" + propname;
 	upcase(result);
-	return MSG_Get(result.c_str());
+	return result;
 }
 
-const char* Property::GetHelpUtf8() const
+static std::string create_configitem_name(const std::string& propname,
+                                          const std::string& item)
 {
-	std::string result = "CONFIG_" + propname;
+	std::string result = "CONFIGITEM_" + propname + '_' + item;
 	upcase(result);
-	return MSG_GetRaw(result.c_str());
+	return result;
+}
+
+void Property::Set_item_help(const std::string& item, const std::string& in)
+{
+	MSG_Add(create_configitem_name(propname, item).c_str(), in.c_str());
+}
+
+std::string Property::GetHelp() const
+{
+	std::string result = MSG_Get(create_config_name(propname).c_str());
+
+	const auto configitem_has_message = [this](const auto& value) {
+		return MSG_Exists(create_configitem_name(propname, value).c_str());
+	};
+	if (std::any_of(valid_values.begin(), valid_values.end(), configitem_has_message)) {
+		for (const auto& value : valid_values) {
+			result.append(MSG_Get(
+			        create_configitem_name(propname, value).c_str()));
+		}
+	}
+	return result;
+}
+
+std::string Property::GetHelpUtf8() const
+{
+	std::string result = MSG_GetRaw(create_config_name(propname).c_str());
+
+	const auto configitem_has_message = [this](const auto& value) {
+		return MSG_Exists(create_configitem_name(propname, value).c_str());
+	};
+	if (std::any_of(valid_values.begin(), valid_values.end(), configitem_has_message)) {
+		for (const auto& value : valid_values) {
+			result.append(MSG_GetRaw(
+			        create_configitem_name(propname, value).c_str()));
+		}
+	}
+	return result;
 }
 
 bool Prop_int::ValidateValue(const Value& in)
@@ -948,7 +986,7 @@ bool Section_prop::HandleInputline(const std::string& line)
 
 		if (p->IsDeprecated()) {
 			LOG_WARNING("CONFIG: Deprecated option '%s'", name.c_str());
-			LOG_WARNING("CONFIG: %s", p->GetHelp());
+			LOG_WARNING("CONFIG: %s", p->GetHelp().c_str());
 			return false;
 		}
 

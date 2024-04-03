@@ -140,9 +140,10 @@ public:
 	                                     const char* alternate_value);
 
 	void Set_help(const std::string& str);
+	void Set_item_help(const std::string& item, const std::string& in);
 
-	const char* GetHelp() const;
-	const char* GetHelpUtf8() const;
+	std::string GetHelp() const;
+	std::string GetHelpUtf8() const;
 
 	virtual bool SetValue(const std::string& str) = 0;
 
