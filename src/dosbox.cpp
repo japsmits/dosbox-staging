@@ -838,7 +838,7 @@ void DOSBOX_Init()
 	        "             Where WAIT is how long after the last IO port write fading begins,\n"
 	        "             ranging between 100 and 5000 milliseconds; and FADE is the\n"
 	        "             fade-out period, ranging between 10 and 3000 milliseconds.\n"
-		"             Examples:\n"
+	        "             Examples:\n"
 	        "                300 200 (Wait 300ms before fading out over a 200ms period)\n"
 	        "                1000 3000 (Wait 1s before fading out over a 3s period)");
 

@@ -662,7 +662,6 @@ static void init_capture_dosbox_settings(Section_prop& secprop)
 	        "Directory where the various captures are saved, such as audio, video, MIDI\n"
 	        "and screenshot captures. ('capture' in the current working directory by\n"
 	        "default).");
-	assert(path_prop);
 
 	auto* str_prop = secprop.Add_string("default_image_capture_formats",
 	                                    when_idle,
@@ -688,7 +687,6 @@ static void init_capture_dosbox_settings(Section_prop& secprop)
 	        "screenshot action will save multiple images in the specified formats.\n"
 	        "Keybindings for taking single screenshots in specific formats are also\n"
 	        "available.");
-	assert(str_prop);
 }
 
 void CAPTURE_AddConfigSection(const config_ptr_t& conf)

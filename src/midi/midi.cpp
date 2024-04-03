@@ -826,7 +826,6 @@ void init_midi_dosbox_settings(Section_prop& secprop)
 	str_prop->Set_help("MPU-401 mode to emulate ('intelligent' by default).");
 
 	auto* bool_prop = secprop.Add_bool("raw_midi_output", when_idle, false);
-	assert(bool_prop);
 	bool_prop->Set_help(
 	        "Enable raw, unaltered MIDI output (disabled by default).\n"
 	        "The MIDI drivers of many games don't fully conform to the MIDI standard,\n"

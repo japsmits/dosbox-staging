@@ -4221,29 +4221,26 @@ static void config_add_sdl()
 	Section_prop *sdl_sec=control->AddSection_prop("sdl", &read_config,
 	                                               changeable_at_runtime);
 	sdl_sec->AddInitFunction(&MAPPER_StartUp);
-	Prop_bool *Pbool; // use pbool for new properties
-	Prop_bool *pbool;
-	Prop_string *Pstring; // use pstring for new properties
-	Prop_string *pstring;
-	Prop_int *Pint; // use pint for new properties
-	Prop_int *pint;
-	PropMultiVal* Pmulti;
+	Prop_bool *pbool = nullptr;
+	Prop_string* pstring = nullptr;
+	Prop_int* pint       = nullptr;
+	PropMultiVal* pmulti = nullptr;
 	Section_prop* psection;
 
 	constexpr auto always = Property::Changeable::Always;
 	constexpr auto deprecated = Property::Changeable::Deprecated;
 	constexpr auto on_start = Property::Changeable::OnlyAtStart;
 
-	Pbool = sdl_sec->Add_bool("fullscreen", always, false);
-	Pbool->Set_help("Start directly in fullscreen (disabled by default).\n"
+	pbool = sdl_sec->Add_bool("fullscreen", always, false);
+	pbool->Set_help("Start directly in fullscreen (disabled by default).\n"
 	                "Run INTRO and see Special Keys for window control hotkeys.");
 
 	pint = sdl_sec->Add_int("display", on_start, 0);
 	pint->Set_help("Number of display to use; values depend on OS and user "
 	               "settings (0 by default).");
 
-	Pstring = sdl_sec->Add_string("fullresolution", always, "desktop");
-	Pstring->Set_help("What resolution to use for fullscreen: 'original', 'desktop'\n"
+	pstring = sdl_sec->Add_string("fullresolution", always, "desktop");
+	pstring->Set_help("What resolution to use for fullscreen: 'original', 'desktop'\n"
 	                  "or a fixed size, e.g. 1024x768 ('desktop' by default).");
 
 	pstring = sdl_sec->Add_string("windowresolution", on_start, "default");
@@ -4264,11 +4261,11 @@ static void config_add_sdl()
 	        "  X,Y:       Set window position in X,Y format (e.g., 250,100).\n"
 	        "             0,0 is the top-left corner of the screen.");
 
-	Pbool = sdl_sec->Add_bool("window_decorations", always, true);
-	Pbool->Set_help("Enable window decorations in windowed mode (enabled by default).");
+	pbool = sdl_sec->Add_bool("window_decorations", always, true);
+	pbool->Set_help("Enable window decorations in windowed mode (enabled by default).");
 
-	Pint = sdl_sec->Add_int("transparency", always, 0);
-	Pint->Set_help("Set the transparency of the DOSBox Staging screen (0 by default).\n"
+	pint = sdl_sec->Add_int("transparency", always, 0);
+	pint->Set_help("Set the transparency of the DOSBox Staging screen (0 by default).\n"
 	               "From 0 (no transparency) to 90 (high transparency).");
 
 	pstring = sdl_sec->Add_path("max_resolution", deprecated, "");
@@ -4362,21 +4359,21 @@ static void config_add_sdl()
 	                  "Use 'texture_renderer = auto' for an automatic choice.");
 	pstring->Set_values(get_sdl_texture_renderers());
 
-	Pmulti = sdl_sec->AddMultiVal("capture_mouse", deprecated, ",");
-	Pmulti->Set_help("Moved to [mouse] section and renamed to 'mouse_capture'.");
+	pmulti = sdl_sec->AddMultiVal("capture_mouse", deprecated, ",");
+	pmulti->Set_help("Moved to [mouse] section and renamed to 'mouse_capture'.");
 
-	Pmulti = sdl_sec->AddMultiVal("sensitivity", deprecated, ",");
-	Pmulti->Set_help("Moved to [mouse] section and renamed to 'mouse_sensitivity'.");
+	pmulti = sdl_sec->AddMultiVal("sensitivity", deprecated, ",");
+	pmulti->Set_help("Moved to [mouse] section and renamed to 'mouse_sensitivity'.");
 
 	pbool = sdl_sec->Add_bool("raw_mouse_input", deprecated, false);
 	pbool->Set_help("Moved to [mouse] section and renamed to 'mouse_raw_input'.");
 
-	Pbool = sdl_sec->Add_bool("waitonerror", always, true);
-	Pbool->Set_help("Keep the console open if an error has occurred (enabled by default).");
+	pbool = sdl_sec->Add_bool("waitonerror", always, true);
+	pbool->Set_help("Keep the console open if an error has occurred (enabled by default).");
 
-	Pmulti = sdl_sec->AddMultiVal("priority", always, " ");
-	Pmulti->SetValue("auto auto");
-	Pmulti->Set_help("Priority levels to apply when active and inactive, respectively.\n"
+	pmulti = sdl_sec->AddMultiVal("priority", always, " ");
+	pmulti->SetValue("auto auto");
+	pmulti->Set_help("Priority levels to apply when active and inactive, respectively.\n"
 	                 "('auto auto' by default)\n"
 	                 "'auto' lets the host operating system manage the priority.");
 
@@ -4389,7 +4386,7 @@ static void config_add_sdl()
 	        "highest",
 	        nullptr,
 	};
-	psection = Pmulti->GetSection();
+	psection = pmulti->GetSection();
 	psection->Add_string("active", always, priority_level_choices[0])
 	        ->Set_values(priority_level_choices);
 	psection->Add_string("inactive", always, priority_level_choices[0])
